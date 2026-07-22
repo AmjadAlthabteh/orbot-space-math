@@ -8,6 +8,8 @@ constexpr double gravitationalConstant = 6.67430e-11;
 constexpr double earthMassKg = 5.97219e24;
 constexpr double earthRadiusMeters = 6.371e6;
 constexpr double standardGravity = 9.80665;
+constexpr double speedOfLightMetersPerSecond = 299792458.0;
+constexpr double seaLevelAtmosphericDensity = 1.225;
 
 struct HohmannTransfer {
     double departureDeltaV;
@@ -15,6 +17,18 @@ struct HohmannTransfer {
     double totalDeltaV;
     double transferTimeSeconds;
 };
+
+struct ClosestApproach {
+    double timeSeconds;
+    double distanceMeters;
+};
+
+struct OrbitalElements {
+    double semiMajorAxisMeters;
+    double eccentricity;
+    double inclinationRadians;
+    double specificAngularMomentum;
+ };
 
 [[nodiscard]] double distance(const Vector3& from, const Vector3& to);
 [[nodiscard]] double gravitationalForce(double massA, double massB, double separationMeters);
@@ -27,6 +41,20 @@ struct HohmannTransfer {
     double centralMassKg,
     const Vector3& position,
     const Vector3& velocity);
+[[nodiscard]] OrbitalElements orbitalElements(
+    double centralMassKg,
+    const Vector3& position,
+    const Vector3& velocity);
+[[nodiscard]] double circularOrbitRadius(double centralMassKg, double orbitalSpeedMetersPerSecond);
+[[nodiscard]] double sphereOfInfluenceRadius(
+    double orbitRadiusMeters,
+    double smallerBodyMassKg,
+    double largerBodyMassKg);
+[[nodiscard]] double hillSphereRadius(
+    double orbitRadiusMeters,
+    double smallerBodyMassKg,
+    double largerBodyMassKg);
+[[nodiscard]] double synodicPeriod(double firstOrbitalPeriodSeconds, double secondOrbitalPeriodSeconds);
 [[nodiscard]] double thrustAcceleration(double thrustNewtons, double spacecraftMassKg);
 [[nodiscard]] double deltaVFromSpecificImpulse(
     double specificImpulseSeconds,
@@ -46,6 +74,29 @@ struct HohmannTransfer {
     const Vector3& acceleration,
     double deltaTimeSeconds);
 [[nodiscard]] Vector3 directionToward(const Vector3& from, const Vector3& to);
+[[nodiscard]] double phaseAngleRadians(const Vector3& fromCentralBodyA, const Vector3& fromCentralBodyB);
+[[nodiscard]] double lineOfSightRate(
+    const Vector3& observerPosition,
+    const Vector3& observerVelocity,
+    const Vector3& targetPosition,
+    const Vector3& targetVelocity);
+[[nodiscard]] ClosestApproach closestApproach(
+    const Vector3& relativePosition,
+    const Vector3& relativeVelocity);
+[[nodiscard]] double atmosphericDensity(
+    double altitudeMeters,
+    double referenceDensityKgPerCubicMeter = seaLevelAtmosphericDensity,
+    double scaleHeightMeters = 8500.0);
+[[nodiscard]] double dragForce(
+    double atmosphericDensityKgPerCubicMeter,
+    double speedMetersPerSecond,
+    double dragCoefficient,
+    double crossSectionAreaSquareMeters);
+[[nodiscard]] double solarRadiationPressureForce(
+    double solarFluxWattsPerSquareMeter,
+    double reflectivityCoefficient,
+    double crossSectionAreaSquareMeters);
+[[nodiscard]] double signalLightTime(double rangeMeters);
 [[nodiscard]] bool hasCollisionRisk(
     const Vector3& positionA,
     const Vector3& positionB,
