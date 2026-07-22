@@ -1,5 +1,6 @@
 #include "OrbitCore/Physics.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <string>
@@ -86,6 +87,79 @@ double specificOrbitalEnergy(
     return 0.5 * velocity.magnitudeSquared() - gravitationalConstant * centralMassKg / radius;
 }
 
+OrbitalElements orbitalElements(
+    double centralMassKg,
+    const Vector3& position,
+    const Vector3& velocity)
+{
+    validatePositive(centralMassKg, "centralMassKg");
+    if (!position.isFinite() || !velocity.isFinite()) {
+        throw std::invalid_argument("position and velocity must be finite.");
+    }
+
+    const double mu = gravitationalConstant * centralMassKg;
+    const double radius = position.magnitude();
+    validatePositive(radius, "position radius");
+
+    const Vector3 angularMomentum = position.cross(velocity);
+    const double h = angularMomentum.magnitude();
+    validatePositive(h, "specific angular momentum");
+
+    const double energy = specificOrbitalEnergy(centralMassKg, position, velocity);
+    if (energy == 0.0) {
+        throw std::invalid_argument("Parabolic trajectories do not have a finite semi-major axis.");
+    }
+
+    const Vector3 eccentricityVector = (velocity.cross(angularMomentum) / mu) - (position / radius);
+    const double cosineInclination = angularMomentum.z / h;
+    const double boundedCosine = std::max(-1.0, std::min(1.0, cosineInclination));
+
+    return OrbitalElements{
+        -mu / (2.0 * energy),
+        eccentricityVector.magnitude(),
+        std::acos(boundedCosine),
+        h
+    };
+}
+
+double circularOrbitRadius(double centralMassKg, double orbitalSpeedMetersPerSecond)
+{
+    validatePositive(centralMassKg, "centralMassKg");
+    validatePositive(orbitalSpeedMetersPerSecond, "orbitalSpeedMetersPerSecond");
+    return gravitationalConstant * centralMassKg / (orbitalSpeedMetersPerSecond * orbitalSpeedMetersPerSecond);
+}
+
+double sphereOfInfluenceRadius(
+    double orbitRadiusMeters,
+    double smallerBodyMassKg,
+    double largerBodyMassKg)
+{
+    validatePositive(orbitRadiusMeters, "orbitRadiusMeters");
+    validatePositive(smallerBodyMassKg, "smallerBodyMassKg");
+    validatePositive(largerBodyMassKg, "largerBodyMassKg");
+    return orbitRadiusMeters * std::pow(smallerBodyMassKg / largerBodyMassKg, 2.0 / 5.0);
+}
+
+double hillSphereRadius(
+    double orbitRadiusMeters,
+    double smallerBodyMassKg,
+    double largerBodyMassKg)
+{
+    validatePositive(orbitRadiusMeters, "orbitRadiusMeters");
+    validatePositive(smallerBodyMassKg, "smallerBodyMassKg");
+    validatePositive(largerBodyMassKg, "largerBodyMassKg");
+    return orbitRadiusMeters * std::cbrt(smallerBodyMassKg / (3.0 * largerBodyMassKg));
+}
+
+double synodicPeriod(double firstOrbitalPeriodSeconds, double secondOrbitalPeriodSeconds)
+{
+    validatePositive(firstOrbitalPeriodSeconds, "firstOrbitalPeriodSeconds");
+    validatePositive(secondOrbitalPeriodSeconds, "secondOrbitalPeriodSeconds");
+    const double relativeRate = std::abs((1.0 / firstOrbitalPeriodSeconds) - (1.0 / secondOrbitalPeriodSeconds));
+    validatePositive(relativeRate, "relative orbital rate");
+    return 1.0 / relativeRate;
+}
+
 double thrustAcceleration(double thrustNewtons, double spacecraftMassKg)
 {
     validateNonNegative(thrustNewtons, "thrustNewtons");
@@ -162,6 +236,89 @@ Vector3 estimateFuturePosition(
 Vector3 directionToward(const Vector3& from, const Vector3& to)
 {
     return (to - from).normalized();
+}
+
+double phaseAngleRadians(const Vector3& fromCentralBodyA, const Vector3& fromCentralBodyB)
+{
+    const double radiusA = fromCentralBodyA.magnitude();
+    const double radiusB = fromCentralBodyB.magnitude();
+    validatePositive(radiusA, "fromCentralBodyA radius");
+    validatePositive(radiusB, "fromCentralBodyB radius");
+
+    const double cosineAngle = fromCentralBodyA.dot(fromCentralBodyB) / (radiusA * radiusB);
+    return std::acos(std::max(-1.0, std::min(1.0, cosineAngle)));
+}
+
+double lineOfSightRate(
+    const Vector3& observerPosition,
+    const Vector3& observerVelocity,
+    const Vector3& targetPosition,
+    const Vector3& targetVelocity)
+{
+    const Vector3 relativePosition = targetPosition - observerPosition;
+    const Vector3 relativeVelocity = targetVelocity - observerVelocity;
+    const double range = relativePosition.magnitude();
+    validatePositive(range, "range");
+    return relativePosition.dot(relativeVelocity) / range;
+}
+
+ClosestApproach closestApproach(
+    const Vector3& relativePosition,
+    const Vector3& relativeVelocity)
+{
+    if (!relativePosition.isFinite() || !relativeVelocity.isFinite()) {
+        throw std::invalid_argument("relativePosition and relativeVelocity must be finite.");
+    }
+
+    const double speedSquared = relativeVelocity.magnitudeSquared();
+    if (speedSquared == 0.0) {
+        return ClosestApproach{0.0, relativePosition.magnitude()};
+    }
+
+    const double unconstrainedTime = -relativePosition.dot(relativeVelocity) / speedSquared;
+    const double time = std::max(0.0, unconstrainedTime);
+    return ClosestApproach{time, (relativePosition + relativeVelocity * time).magnitude()};
+}
+
+double atmosphericDensity(
+    double altitudeMeters,
+    double referenceDensityKgPerCubicMeter,
+    double scaleHeightMeters)
+{
+    validateNonNegative(altitudeMeters, "altitudeMeters");
+    validatePositive(referenceDensityKgPerCubicMeter, "referenceDensityKgPerCubicMeter");
+    validatePositive(scaleHeightMeters, "scaleHeightMeters");
+    return referenceDensityKgPerCubicMeter * std::exp(-altitudeMeters / scaleHeightMeters);
+}
+
+double dragForce(
+    double atmosphericDensityKgPerCubicMeter,
+    double speedMetersPerSecond,
+    double dragCoefficient,
+    double crossSectionAreaSquareMeters)
+{
+    validateNonNegative(atmosphericDensityKgPerCubicMeter, "atmosphericDensityKgPerCubicMeter");
+    validateNonNegative(speedMetersPerSecond, "speedMetersPerSecond");
+    validatePositive(dragCoefficient, "dragCoefficient");
+    validatePositive(crossSectionAreaSquareMeters, "crossSectionAreaSquareMeters");
+    return 0.5 * atmosphericDensityKgPerCubicMeter * speedMetersPerSecond * speedMetersPerSecond * dragCoefficient * crossSectionAreaSquareMeters;
+}
+
+double solarRadiationPressureForce(
+    double solarFluxWattsPerSquareMeter,
+    double reflectivityCoefficient,
+    double crossSectionAreaSquareMeters)
+{
+    validatePositive(solarFluxWattsPerSquareMeter, "solarFluxWattsPerSquareMeter");
+    validateNonNegative(reflectivityCoefficient, "reflectivityCoefficient");
+    validatePositive(crossSectionAreaSquareMeters, "crossSectionAreaSquareMeters");
+    return solarFluxWattsPerSquareMeter * reflectivityCoefficient * crossSectionAreaSquareMeters / speedOfLightMetersPerSecond;
+}
+
+double signalLightTime(double rangeMeters)
+{
+    validateNonNegative(rangeMeters, "rangeMeters");
+    return rangeMeters / speedOfLightMetersPerSecond;
 }
 
 bool hasCollisionRisk(
