@@ -75,6 +75,10 @@ int main()
         const double radialVelocity = explorer.velocity().dot(explorer.position().normalized());
         const double escapeSpeed = physics::escapeVelocity(physics::earthMassKg, explorer.position().magnitude());
         const double orbitPeriod = physics::orbitalPeriod(physics::earthMassKg, explorer.position().magnitude());
+        const auto elements = physics::orbitalElements(
+            physics::earthMassKg,
+            explorer.position(),
+            explorer.velocity());
         const double kinetic = physics::kineticEnergy(explorer.totalMassKg(), explorer.velocity());
         const double potential = physics::gravitationalPotentialEnergy(
             explorer.totalMassKg(),
@@ -88,6 +92,19 @@ int main()
             physics::earthMassKg,
             explorer.position().magnitude(),
             physics::earthRadiusMeters + 900000.0);
+        const double phaseAngle = physics::phaseAngleRadians(explorer.position(), target);
+        const double targetRangeRate = physics::lineOfSightRate(
+            explorer.position(),
+            explorer.velocity(),
+            target,
+            Vector3{0.0, 7600.0, 0.0});
+        const auto approach = physics::closestApproach(
+            nearbyCraftPosition - explorer.position(),
+            Vector3{12.0, 60.0, 0.0} - explorer.velocity());
+        const double density = physics::atmosphericDensity(explorer.position().magnitude() - physics::earthRadiusMeters);
+        const double drag = physics::dragForce(density, explorer.velocity().magnitude(), 2.2, 18.0);
+        const double solarPressure = physics::solarRadiationPressureForce(1361.0, 1.35, 22.0);
+        const double lightTime = physics::signalLightTime(startingDistance);
 
         std::cout << std::fixed << std::setprecision(3);
         std::cout << "OrbitCore spacecraft navigation simulator\n";
@@ -97,11 +114,22 @@ int main()
         std::cout << "Initial Earth gravity force: " << force << " N\n";
         std::cout << "Escape velocity here: " << escapeSpeed << " m/s\n";
         std::cout << "Orbital period estimate: " << orbitPeriod << " s\n";
+        std::cout << "Orbital elements: semi-major axis " << elements.semiMajorAxisMeters
+                  << " m, eccentricity " << elements.eccentricity
+                  << ", inclination " << elements.inclinationRadians << " rad\n";
         std::cout << "Kinetic energy: " << kinetic << " J\n";
         std::cout << "Gravitational potential energy: " << potential << " J\n";
         std::cout << "Specific orbital energy: " << specificEnergy << " J/kg\n";
         std::cout << "Hohmann transfer to 900 km orbit: delta-v " << transfer.totalDeltaV
                   << " m/s, transfer time " << transfer.transferTimeSeconds << " s\n";
+        std::cout << "Phase angle to target: " << phaseAngle << " rad\n";
+        std::cout << "Line-of-sight range rate: " << targetRangeRate << " m/s\n";
+        std::cout << "Closest approach with nearby craft: " << approach.distanceMeters
+                  << " m in " << approach.timeSeconds << " s\n";
+        std::cout << "Atmospheric density estimate: " << density << " kg/m^3\n";
+        std::cout << "Drag force estimate: " << drag << " N\n";
+        std::cout << "Solar radiation pressure force: " << solarPressure << " N\n";
+        std::cout << "Signal light time to target: " << lightTime << " s\n";
         std::cout << "Required target direction: " << direction << '\n';
         std::cout << "Required base direction: " << baseDirection << '\n';
         std::cout << "Position x velocity cross product: " << angularMomentumHint << '\n';
