@@ -50,6 +50,8 @@ int main()
         require(a.cross(b).x == 12.0 && a.cross(b).y == -9.0 && a.cross(b).z == 2.0, "Vector cross product failed.");
 
         require(nearlyEqual(physics::distance(Vector3{0.0, 0.0, 0.0}, Vector3{0.0, 3.0, 4.0}), 5.0, 1e-12), "Distance failed.");
+        require(nearlyEqual(physics::degreesToRadians(180.0), physics::pi, 1e-12), "Degrees to radians failed.");
+        require(nearlyEqual(physics::radiansToDegrees(physics::pi), 180.0, 1e-12), "Radians to degrees failed.");
         require(nearlyEqual(physics::orbitalVelocity(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 7672.599, 1.0), "Orbital velocity failed.");
         require(nearlyEqual(physics::escapeVelocity(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 10850.691, 1.0), "Escape velocity failed.");
         require(nearlyEqual(physics::orbitalPeriod(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 5544.901, 2.0), "Orbital period failed.");

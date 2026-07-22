@@ -7,6 +7,7 @@ namespace orbitcore::physics {
 constexpr double gravitationalConstant = 6.67430e-11;
 constexpr double earthMassKg = 5.97219e24;
 constexpr double earthRadiusMeters = 6.371e6;
+constexpr double pi = 3.14159265358979323846;
 constexpr double standardGravity = 9.80665;
 constexpr double speedOfLightMetersPerSecond = 299792458.0;
 constexpr double seaLevelAtmosphericDensity = 1.225;
@@ -28,9 +29,11 @@ struct OrbitalElements {
     double eccentricity;
     double inclinationRadians;
     double specificAngularMomentum;
- };
+};
 
 [[nodiscard]] double distance(const Vector3& from, const Vector3& to);
+[[nodiscard]] double degreesToRadians(double degrees);
+[[nodiscard]] double radiansToDegrees(double radians);
 [[nodiscard]] double gravitationalForce(double massA, double massB, double separationMeters);
 [[nodiscard]] double orbitalVelocity(double centralMassKg, double orbitRadiusMeters);
 [[nodiscard]] double escapeVelocity(double centralMassKg, double radiusMeters);

@@ -26,6 +26,22 @@ double distance(const Vector3& from, const Vector3& to)
     return (to - from).magnitude();
 }
 
+double degreesToRadians(double degrees)
+{
+    if (!std::isfinite(degrees)) {
+        throw std::invalid_argument("degrees must be finite.");
+    }
+    return degrees * pi / 180.0;
+}
+
+double radiansToDegrees(double radians)
+{
+    if (!std::isfinite(radians)) {
+        throw std::invalid_argument("radians must be finite.");
+    }
+    return radians * 180.0 / pi;
+}
+
 double gravitationalForce(double massA, double massB, double separationMeters)
 {
     validatePositive(massA, "massA");
@@ -52,7 +68,6 @@ double orbitalPeriod(double centralMassKg, double orbitRadiusMeters)
 {
     validatePositive(centralMassKg, "centralMassKg");
     validatePositive(orbitRadiusMeters, "orbitRadiusMeters");
-    constexpr double pi = 3.14159265358979323846;
     return 2.0 * pi * std::sqrt((orbitRadiusMeters * orbitRadiusMeters * orbitRadiusMeters) / (gravitationalConstant * centralMassKg));
 }
 
@@ -190,7 +205,6 @@ HohmannTransfer hohmannTransfer(
     validatePositive(startingOrbitRadiusMeters, "startingOrbitRadiusMeters");
     validatePositive(targetOrbitRadiusMeters, "targetOrbitRadiusMeters");
 
-    constexpr double pi = 3.14159265358979323846;
     const double mu = gravitationalConstant * centralMassKg;
     const double semiMajorAxis = 0.5 * (startingOrbitRadiusMeters + targetOrbitRadiusMeters);
     const double departureDeltaV = std::sqrt(mu / startingOrbitRadiusMeters)

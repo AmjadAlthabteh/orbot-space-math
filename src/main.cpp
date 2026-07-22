@@ -116,13 +116,15 @@ int main()
         std::cout << "Orbital period estimate: " << orbitPeriod << " s\n";
         std::cout << "Orbital elements: semi-major axis " << elements.semiMajorAxisMeters
                   << " m, eccentricity " << elements.eccentricity
-                  << ", inclination " << elements.inclinationRadians << " rad\n";
+                  << ", inclination " << elements.inclinationRadians << " rad / "
+                  << physics::radiansToDegrees(elements.inclinationRadians) << " deg\n";
         std::cout << "Kinetic energy: " << kinetic << " J\n";
         std::cout << "Gravitational potential energy: " << potential << " J\n";
         std::cout << "Specific orbital energy: " << specificEnergy << " J/kg\n";
         std::cout << "Hohmann transfer to 900 km orbit: delta-v " << transfer.totalDeltaV
                   << " m/s, transfer time " << transfer.transferTimeSeconds << " s\n";
-        std::cout << "Phase angle to target: " << phaseAngle << " rad\n";
+        std::cout << "Phase angle to target: " << phaseAngle << " rad / "
+                  << physics::radiansToDegrees(phaseAngle) << " deg\n";
         std::cout << "Line-of-sight range rate: " << targetRangeRate << " m/s\n";
         std::cout << "Closest approach with nearby craft: " << approach.distanceMeters
                   << " m in " << approach.timeSeconds << " s\n";
