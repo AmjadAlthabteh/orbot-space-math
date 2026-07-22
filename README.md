@@ -1,6 +1,4 @@
-# OrbitCore
-
-OrbitCore is a small C++17 spacecraft navigation simulator focused on vector math and orbital physics calculations.
+small C++17 spacecraft navigation simulator focused on vector math and orbital physics calculations.
 
 It calculates:
 
