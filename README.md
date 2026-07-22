@@ -10,9 +10,13 @@ It calculates:
 - Estimated future position using time steps
 - Fuel usage during a maneuver
 - Escape velocity, orbital period, orbital energy, kinetic energy, and potential energy
+- Classical orbital elements: semi-major axis, eccentricity, inclination, and specific angular momentum
 - Hohmann transfer delta-v and transfer time between circular orbits
 - Rocket equation delta-v from specific impulse and mass ratio
 - Thrust acceleration
+- Sphere of influence, Hill sphere, and synodic period
+- Phase angle, line-of-sight range rate, closest approach time, and miss distance
+- Atmospheric density, drag force, solar radiation pressure, and signal light-time
 - Direction vectors toward a target
 - Dot product, cross product, vector magnitude, and normalization
 - Collision risk when spacecraft move too close together
