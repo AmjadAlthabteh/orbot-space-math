@@ -16,6 +16,7 @@ It calculates:
 - Thrust acceleration
 - Sphere of influence, Hill sphere, and synodic period
 - Phase angle, line-of-sight range rate, closest approach time, and miss distance
+- Predicted collision risk from relative velocity and lookahead time
 - Atmospheric density, drag force, solar radiation pressure, and signal light-time
 - Direction vectors toward a target
 - Dot product, cross product, vector magnitude, and normalization

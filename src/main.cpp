@@ -13,7 +13,8 @@ void printStep(
     const orbitcore::Spacecraft& craft,
     const orbitcore::Vector3& target,
     const orbitcore::SpaceBase& base,
-    const orbitcore::Vector3& companionPosition)
+    const orbitcore::Vector3& companionPosition,
+    const orbitcore::Vector3& companionVelocity)
 {
     const double targetDistance = orbitcore::physics::distance(craft.position(), target);
     const double baseDistance = base.distanceTo(craft.position());
@@ -21,6 +22,13 @@ void printStep(
         craft.position(),
         companionPosition,
         500.0);
+    const bool predictedCollision = orbitcore::physics::hasPredictedCollisionRisk(
+        craft.position(),
+        craft.velocity(),
+        companionPosition,
+        companionVelocity,
+        1000.0,
+        60.0);
 
     std::cout << "Step " << std::setw(2) << step
               << " | position " << craft.position()
@@ -31,6 +39,9 @@ void printStep(
 
     if (collisionWarning) {
         std::cout << " | COLLISION RISK";
+    }
+    if (predictedCollision) {
+        std::cout << " | TRAJECTORY CONFLICT";
     }
     if (base.isDockingRange(craft.position())) {
         std::cout << " | DOCKING WINDOW";
@@ -50,6 +61,7 @@ int main()
         const Vector3 earthCenter{0.0, 0.0, 0.0};
         const Vector3 target{7.05e6, 12000.0, 900.0};
         Vector3 nearbyCraftPosition{physics::earthRadiusMeters + 420300.0, 200.0, 0.0};
+        const Vector3 nearbyCraftVelocity{12.0, 60.0, 0.0};
         const orbitcore::SpaceBase orbitalBase{
             "Aster Gate",
             Vector3{physics::earthRadiusMeters + 421500.0, 45000.0, 120.0},
@@ -100,7 +112,7 @@ int main()
             Vector3{0.0, 7600.0, 0.0});
         const auto approach = physics::closestApproach(
             nearbyCraftPosition - explorer.position(),
-            Vector3{12.0, 60.0, 0.0} - explorer.velocity());
+            nearbyCraftVelocity - explorer.velocity());
         const double density = physics::atmosphericDensity(explorer.position().magnitude() - physics::earthRadiusMeters);
         const double drag = physics::dragForce(density, explorer.velocity().magnitude(), 2.2, 18.0);
         const double solarPressure = physics::solarRadiationPressureForce(1361.0, 1.35, 22.0);
@@ -152,7 +164,7 @@ int main()
 
         constexpr double timeStepSeconds = 10.0;
         for (int step = 0; step <= 20; ++step) {
-            printStep(step, explorer, target, orbitalBase, nearbyCraftPosition);
+            printStep(step, explorer, target, orbitalBase, nearbyCraftPosition, nearbyCraftVelocity);
 
             const Vector3 acceleration = physics::gravitationalAcceleration(
                 explorer.position(),
@@ -166,7 +178,7 @@ int main()
 
             explorer.applyAcceleration(acceleration, timeStepSeconds);
             explorer.setPosition(predicted);
-            nearbyCraftPosition += Vector3{12.0, 60.0, 0.0};
+            nearbyCraftPosition += nearbyCraftVelocity;
         }
 
         return 0;

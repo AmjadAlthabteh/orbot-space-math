@@ -294,6 +294,21 @@ ClosestApproach closestApproach(
     return ClosestApproach{time, (relativePosition + relativeVelocity * time).magnitude()};
 }
 
+bool hasPredictedCollisionRisk(
+    const Vector3& positionA,
+    const Vector3& velocityA,
+    const Vector3& positionB,
+    const Vector3& velocityB,
+    double safetyRadiusMeters,
+    double lookaheadSeconds)
+{
+    validatePositive(safetyRadiusMeters, "safetyRadiusMeters");
+    validateNonNegative(lookaheadSeconds, "lookaheadSeconds");
+
+    const ClosestApproach approach = closestApproach(positionB - positionA, velocityB - velocityA);
+    return approach.timeSeconds <= lookaheadSeconds && approach.distanceMeters <= safetyRadiusMeters;
+}
+
 double atmosphericDensity(
     double altitudeMeters,
     double referenceDensityKgPerCubicMeter,

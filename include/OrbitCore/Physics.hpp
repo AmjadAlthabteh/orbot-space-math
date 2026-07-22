@@ -86,6 +86,13 @@ struct OrbitalElements {
 [[nodiscard]] ClosestApproach closestApproach(
     const Vector3& relativePosition,
     const Vector3& relativeVelocity);
+[[nodiscard]] bool hasPredictedCollisionRisk(
+    const Vector3& positionA,
+    const Vector3& velocityA,
+    const Vector3& positionB,
+    const Vector3& velocityB,
+    double safetyRadiusMeters,
+    double lookaheadSeconds);
 [[nodiscard]] double atmosphericDensity(
     double altitudeMeters,
     double referenceDensityKgPerCubicMeter = seaLevelAtmosphericDensity,

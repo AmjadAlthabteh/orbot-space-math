@@ -78,6 +78,13 @@ int main()
         const auto closest = physics::closestApproach(Vector3{100.0, 10.0, 0.0}, Vector3{-10.0, 0.0, 0.0});
         require(nearlyEqual(closest.timeSeconds, 10.0, 1e-12), "Closest approach time failed.");
         require(nearlyEqual(closest.distanceMeters, 10.0, 1e-12), "Closest approach distance failed.");
+        require(physics::hasPredictedCollisionRisk(
+            Vector3{0.0, 0.0, 0.0},
+            Vector3{10.0, 0.0, 0.0},
+            Vector3{100.0, 5.0, 0.0},
+            Vector3{-10.0, 0.0, 0.0},
+            10.0,
+            6.0), "Predicted collision risk failed.");
         require(physics::atmosphericDensity(8500.0) < physics::seaLevelAtmosphericDensity, "Atmospheric density failed.");
         require(nearlyEqual(physics::dragForce(1.0, 10.0, 2.0, 3.0), 300.0, 1e-12), "Drag force failed.");
         require(physics::solarRadiationPressureForce(1361.0, 1.0, 10.0) > 0.0, "Solar radiation pressure failed.");
