@@ -53,13 +53,33 @@ int main()
         require(nearlyEqual(physics::orbitalVelocity(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 7672.599, 1.0), "Orbital velocity failed.");
         require(nearlyEqual(physics::escapeVelocity(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 10850.691, 1.0), "Escape velocity failed.");
         require(nearlyEqual(physics::orbitalPeriod(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 5544.901, 2.0), "Orbital period failed.");
+        require(nearlyEqual(physics::circularOrbitRadius(physics::earthMassKg, 7672.599), physics::earthRadiusMeters + 400000.0, 2000.0), "Circular orbit radius failed.");
         require(nearlyEqual(physics::kineticEnergy(2.0, Vector3{3.0, 0.0, 4.0}), 25.0, 1e-12), "Kinetic energy failed.");
         require(physics::gravitationalPotentialEnergy(1000.0, physics::earthMassKg, physics::earthRadiusMeters) < 0.0, "Potential energy sign failed.");
         require(physics::specificOrbitalEnergy(physics::earthMassKg, Vector3{physics::earthRadiusMeters + 400000.0, 0.0, 0.0}, Vector3{0.0, 7672.599, 0.0}) < 0.0, "Specific orbital energy failed.");
+        const auto elements = physics::orbitalElements(
+            physics::earthMassKg,
+            Vector3{physics::earthRadiusMeters + 400000.0, 0.0, 0.0},
+            Vector3{0.0, physics::orbitalVelocity(physics::earthMassKg, physics::earthRadiusMeters + 400000.0), 0.0});
+        require(nearlyEqual(elements.eccentricity, 0.0, 1e-12), "Orbital eccentricity failed.");
+        require(nearlyEqual(elements.inclinationRadians, 0.0, 1e-12), "Orbital inclination failed.");
+        require(nearlyEqual(elements.semiMajorAxisMeters, physics::earthRadiusMeters + 400000.0, 1e-6), "Semi-major axis failed.");
+        require(physics::sphereOfInfluenceRadius(1.496e11, 5.97219e24, 1.9885e30) > 9.0e8, "Sphere of influence failed.");
+        require(physics::hillSphereRadius(1.496e11, 5.97219e24, 1.9885e30) > 1.0e9, "Hill sphere failed.");
+        require(physics::synodicPeriod(365.25 * 86400.0, 686.98 * 86400.0) > 6.0e7, "Synodic period failed.");
         require(nearlyEqual(physics::thrustAcceleration(2000.0, 500.0), 4.0, 1e-12), "Thrust acceleration failed.");
         require(physics::deltaVFromSpecificImpulse(300.0, 1000.0, 900.0) > 300.0, "Rocket equation delta-v failed.");
         const auto transfer = physics::hohmannTransfer(physics::earthMassKg, physics::earthRadiusMeters + 400000.0, physics::earthRadiusMeters + 800000.0);
         require(transfer.totalDeltaV > 200.0 && transfer.transferTimeSeconds > 2700.0, "Hohmann transfer failed.");
+        require(nearlyEqual(physics::phaseAngleRadians(Vector3{1.0, 0.0, 0.0}, Vector3{0.0, 1.0, 0.0}), 1.57079632679, 1e-10), "Phase angle failed.");
+        require(nearlyEqual(physics::lineOfSightRate(Vector3{0.0, 0.0, 0.0}, Vector3{0.0, 0.0, 0.0}, Vector3{100.0, 0.0, 0.0}, Vector3{-2.0, 0.0, 0.0}), -2.0, 1e-12), "Line-of-sight rate failed.");
+        const auto closest = physics::closestApproach(Vector3{100.0, 10.0, 0.0}, Vector3{-10.0, 0.0, 0.0});
+        require(nearlyEqual(closest.timeSeconds, 10.0, 1e-12), "Closest approach time failed.");
+        require(nearlyEqual(closest.distanceMeters, 10.0, 1e-12), "Closest approach distance failed.");
+        require(physics::atmosphericDensity(8500.0) < physics::seaLevelAtmosphericDensity, "Atmospheric density failed.");
+        require(nearlyEqual(physics::dragForce(1.0, 10.0, 2.0, 3.0), 300.0, 1e-12), "Drag force failed.");
+        require(physics::solarRadiationPressureForce(1361.0, 1.0, 10.0) > 0.0, "Solar radiation pressure failed.");
+        require(nearlyEqual(physics::signalLightTime(physics::speedOfLightMetersPerSecond), 1.0, 1e-12), "Signal light time failed.");
         require(physics::hasCollisionRisk(Vector3{0.0, 0.0, 0.0}, Vector3{3.0, 4.0, 0.0}, 5.0), "Collision risk failed.");
 
         orbitcore::SpaceBase base{"Base", Vector3{100.0, 0.0, 0.0}, 10.0};
